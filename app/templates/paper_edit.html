@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>{{ tr("edit_paper", lang) }}</h1>
+    <p>{{ tr("edit_paper_help", lang) }}</p>
+  </div>
+</section>
+
+<form class="panel-form" method="post" action="/papers/{{ paper.id }}/edit">
+  <label>{{ tr("title", lang) }}
+    <input name="title" required value="{{ paper.title }}">
+  </label>
+  <label>{{ tr("chinese_title", lang) }}
+    <input name="chinese_title" value="{{ paper.chinese_title }}">
+  </label>
+  <label>{{ tr("year", lang) }}
+    <input name="year" value="{{ paper.year or '' }}" inputmode="numeric">
+  </label>
+  <label>{{ tr("authors", lang) }}
+    <input name="authors" value="{{ paper.authors }}">
+  </label>
+  <label>{{ tr("scholar_detail_url", lang) }}
+    <input name="url" value="{{ paper.url or '' }}">
+  </label>
+  <label>{{ tr("pdf_url", lang) }}
+    <input name="pdf_url" value="{{ paper.pdf_url or '' }}">
+  </label>
+  <label>{{ tr("status", lang) }}
+    <select name="status">
+      {% for item in statuses %}
+        <option value="{{ item.value }}" {% if state and state.status.value == item.value %}selected{% endif %}>{{ item.value }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="check">
+    <input type="checkbox" name="favorite" value="true" {% if state and state.favorite %}checked{% endif %}>
+    {{ tr("favorite", lang) }}
+  </label>
+  <label class="check">
+    <input type="checkbox" name="in_watchlist" value="true" {% if state and state.in_watchlist %}checked{% endif %}>
+    {{ tr("focus", lang) }}
+  </label>
+  <label>{{ tr("tags", lang) }}
+    <details class="dropdown-filter">
+      <summary>{{ tr("choose_tags", lang) }}</summary>
+      <div class="dropdown-panel">
+        {% for tag in tags %}
+          <label class="check">
+            <input type="checkbox" name="tag_ids" value="{{ tag.id }}" {% if tag.id in selected_tag_ids %}checked{% endif %}>
+            {{ tag.name }}
+          </label>
+        {% else %}
+          <span class="muted">{{ tr("no_tags", lang) }}</span>
+        {% endfor %}
+      </div>
+    </details>
+  </label>
+  <label>{{ tr("abstract", lang) }}
+    <textarea name="abstract" rows="6">{{ paper.abstract }}</textarea>
+  </label>
+  <label>{{ tr("notes", lang) }}
+    <textarea name="notes" rows="6">{{ state.notes if state else '' }}</textarea>
+  </label>
+  <button type="submit">{{ tr("save_paper", lang) }}</button>
+</form>
+{% endblock %}

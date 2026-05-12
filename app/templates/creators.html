@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-head content-head">
+  <div>
+    <h1>{{ tr("creators", lang) }}</h1>
+    <p>{{ tr("creator_groups_help", lang) }}</p>
+  </div>
+  <details class="toolbar-details">
+    <summary>{{ tr("add_creator", lang) }}</summary>
+    <form class="panel-form compact-form" method="post" action="/creators">
+      <label>{{ tr("name", lang) }}<input name="name" required></label>
+      <label>{{ tr("kind", lang) }}
+        <select name="kind">
+          <option value="scholar">{{ tr("scholar", lang) }}</option>
+          <option value="video_creator">{{ tr("video_creator", lang) }}</option>
+          <option value="blogger">{{ tr("blogger", lang) }}</option>
+          <option value="account">{{ tr("account", lang) }}</option>
+        </select>
+      </label>
+      <label>{{ tr("platform", lang) }}<input name="platform"></label>
+      <label>{{ tr("open_link", lang) }}<input name="profile_url"></label>
+      <label>{{ tr("notes", lang) }}<textarea name="notes" rows="3"></textarea></label>
+      <button type="submit">{{ tr("add_creator", lang) }}</button>
+    </form>
+  </details>
+</section>
+
+{% for group in creator_groups %}
+  <section class="creator-group">
+    <h2>{{ tr(group.kind.value, lang) }}</h2>
+    <div class="creator-list">
+      {% for creator in group.creators %}
+        <article>
+          <div>
+            <h3>{{ creator.name }}</h3>
+            <p>{{ creator.platform or "-" }}</p>
+            {% if creator.profile_url %}<a href="{{ creator.profile_url }}" target="_blank" rel="noreferrer">{{ creator.profile_url }}</a>{% endif %}
+          </div>
+          <div class="creator-actions">
+            <strong>{{ source_map.get(creator.id, [])|length }} {{ tr("sources", lang) }}</strong>
+            <form method="post" action="/creators/{{ creator.id }}/delete">
+              <button class="danger" type="submit">{{ tr("delete", lang) }}</button>
+            </form>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% else %}
+  <div class="empty">{{ tr("no_items", lang) }}</div>
+{% endfor %}
+{% endblock %}

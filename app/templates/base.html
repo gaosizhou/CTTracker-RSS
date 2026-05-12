@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="{{ lang or 'en' }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title or tr("app_name", lang) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v=20260511-ui-refresh-2">
+  </head>
+  <body>
+    {% set current_path = request.url.path if request is defined else "" %}
+    <header class="topbar">
+      <a class="brand" href="/"><span>CT</span>{{ tr("app_name", lang) }}</a>
+      <nav class="nav-links">
+        <a class="{% if current_path.startswith('/papers') %}active{% endif %}" href="/papers">{{ tr("papers", lang) }}</a>
+        <a class="{% if current_path.startswith('/videos') %}active{% endif %}" href="/videos">{{ tr("videos", lang) }}</a>
+        <a class="{% if current_path.startswith('/posts') %}active{% endif %}" href="/posts">{{ tr("posts", lang) }}</a>
+        <a class="{% if current_path.startswith('/focus') %}active{% endif %}" href="/focus">{{ tr("watchlist", lang) }}</a>
+        <a class="{% if current_path.startswith('/creators') %}active{% endif %}" href="/creators">{{ tr("creators", lang) }}</a>
+        <a class="{% if current_path.startswith('/tags') %}active{% endif %}" href="/tags">{{ tr("tags", lang) }}</a>
+      </nav>
+      <div class="top-actions">
+        <form method="post" action="/preferences/language">
+          <button class="ghost" type="submit">{{ tr("ui_lang", lang) }}</button>
+        </form>
+        <details class="top-tag-tool">
+          <summary>{{ tr("add_tag", lang) }}</summary>
+          <form method="post" action="/tags">
+            <input name="name" required placeholder="{{ tr('new_tag', lang) }}">
+            <button type="submit">{{ tr("add_tag", lang) }}</button>
+          </form>
+        </details>
+        <form method="post" action="/api/refresh">
+          <button type="submit">{{ tr("refresh_all", lang) }}</button>
+        </form>
+      </div>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-head content-head">
+  <div>
+    <h1>{{ tr(page_key, lang) }}</h1>
+    <p>{{ pagination.total }} {{ tr("items", lang) }} | {{ tr("showing", lang) }} {{ pagination.start }}-{{ pagination.end }}</p>
+  </div>
+  <div class="head-actions">
+    {% if add_mode == "paper" %}
+      <details class="toolbar-details">
+        <summary>{{ tr("add_scholar", lang) }}</summary>
+        <form class="panel-form compact-form" method="post" action="/papers/scholars">
+          <label>{{ tr("scholar_url", lang) }}<input name="scholar_profile_url" required placeholder="https://scholar.google.com/citations?user=..."></label>
+          <label>{{ tr("aliases", lang) }}<input name="aliases"></label>
+          <label>{{ tr("keywords", lang) }}<input name="keywords"></label>
+          <label>{{ tr("notes", lang) }}<textarea name="notes" rows="3"></textarea></label>
+          <button type="submit">{{ tr("add_and_import", lang) }}</button>
+        </form>
+      </details>
+    {% elif add_mode == "video" %}
+      <details class="toolbar-details">
+        <summary>{{ tr("add_video_source", lang) }}</summary>
+        <form class="panel-form compact-form" method="post" action="/videos/sources">
+          <label>{{ tr("creator", lang) }}<input name="creator_name" required></label>
+          <label>{{ tr("youtube_url", lang) }}<input name="feed_url" required placeholder="https://www.youtube.com/@name/videos"></label>
+          <label>{{ tr("platform", lang) }}<input name="platform" value="youtube"></label>
+          <label>{{ tr("notes", lang) }}<textarea name="notes" rows="3"></textarea></label>
+          <button type="submit">{{ tr("add_and_import", lang) }}</button>
+        </form>
+      </details>
+    {% elif add_mode == "post" %}
+      <details class="toolbar-details">
+        <summary>{{ tr("add_post", lang) }}</summary>
+        <form class="panel-form compact-form" method="post" action="/posts/manual">
+          <label>{{ tr("title", lang) }}<input name="title" required></label>
+          <label>{{ tr("platform", lang) }}<input name="platform" placeholder="x, twitter, blog, wechat"></label>
+          <label>{{ tr("creator", lang) }}<input name="creator_name"></label>
+          <label>{{ tr("year", lang) }}<input name="year" inputmode="numeric"></label>
+          <label>{{ tr("open_link", lang) }}<input name="url"></label>
+          <label>{{ tr("tags", lang) }}
+            <details class="dropdown-filter"><summary>{{ tr("choose_tags", lang) }}</summary><div class="dropdown-panel">
+              {% for tag in tags %}<label class="check"><input type="checkbox" name="tag_ids" value="{{ tag.id }}">{{ tag.name }}</label>{% else %}<span class="muted">{{ tr("no_tags", lang) }}</span>{% endfor %}
+            </div></details>
+          </label>
+          <label>{{ tr("abstract", lang) }}<textarea name="description" rows="3"></textarea></label>
+          <label>{{ tr("notes", lang) }}<textarea name="notes" rows="3"></textarea></label>
+          <button type="submit">{{ tr("add_post", lang) }}</button>
+        </form>
+      </details>
+    {% endif %}
+  </div>
+</section>
+
+{% if request.query_params.get("error") %}
+  <div class="notice">{{ request.query_params.get("error") }}</div>
+{% endif %}
+
+<form class="filters filter-bar" method="get">
+  <input type="hidden" name="page" value="1">
+  {% if not content_type %}
+    <select name="content_type">
+      <option value="">{{ tr("all_types", lang) }}</option>
+      {% for option in content_type_options %}
+        <option value="{{ option.value }}" {% if filters.content_type == option.value %}selected{% endif %}>{{ tr(option.value ~ "s", lang) }}</option>
+      {% endfor %}
+    </select>
+  {% endif %}
+  <select name="creator_id">
+    <option value="">{{ tr("all_creators", lang) }}</option>
+    {% for creator in creators %}
+      <option value="{{ creator.id }}" {% if filters.creator_id == creator.id %}selected{% endif %}>{{ creator.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="year">
+    <option value="">{{ tr("all_years", lang) }}</option>
+    {% for item in years %}<option value="{{ item }}" {% if filters.year == item %}selected{% endif %}>{{ item }}</option>{% endfor %}
+  </select>
+  <input name="keyword" value="{{ filters.keyword }}" placeholder="{{ tr('keyword_placeholder', lang) }}">
+  <select name="platform">
+    <option value="">{{ tr("all_platforms", lang) }}</option>
+    {% for platform in platforms %}<option value="{{ platform }}" {% if filters.platform == platform %}selected{% endif %}>{{ platform }}</option>{% endfor %}
+  </select>
+  <details class="dropdown-filter">
+    <summary>{{ tr("tag_filter", lang) }}</summary>
+    <div class="dropdown-panel">
+      {% for tag in tags %}
+        <label class="check"><input type="checkbox" name="tag_ids" value="{{ tag.id }}" {% if tag.id in filters.tag_ids %}checked{% endif %}>{{ tag.name }}</label>
+      {% else %}
+        <span class="muted">{{ tr("no_tags", lang) }}</span>
+      {% endfor %}
+    </div>
+  </details>
+  <select name="status">
+    <option value="">{{ tr("all_status", lang) }}</option>
+    {% for item in statuses %}<option value="{{ item.value }}" {% if filters.status == item.value %}selected{% endif %}>{{ item.value }}</option>{% endfor %}
+  </select>
+  <select name="match_mode">
+    <option value="all" {% if filters.match_mode != "any" %}selected{% endif %}>{{ tr("match_all", lang) }}</option>
+    <option value="any" {% if filters.match_mode == "any" %}selected{% endif %}>{{ tr("match_any", lang) }}</option>
+  </select>
+  <select name="sort">
+    <option value="year_desc" {% if filters.sort == "year_desc" %}selected{% endif %}>{{ tr("newest_year", lang) }}</option>
+    <option value="year" {% if filters.sort == "year" %}selected{% endif %}>{{ tr("oldest_year", lang) }}</option>
+    <option value="title" {% if filters.sort == "title" %}selected{% endif %}>{{ tr("title", lang) }}</option>
+  </select>
+  <select name="page_size">
+    {% for size in [10, 20, 50, 100] %}
+      <option value="{{ size }}" {% if filters.page_size == size %}selected{% endif %}>{{ size }} / {{ tr("page", lang) }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">{{ tr("filter", lang) }}</button>
+</form>
+
+<section class="content-list">
+  <div class="content-list-head">
+    <span>{{ tr("type", lang) }}</span>
+    <span>{{ tr("content", lang) }}</span>
+    <span>{{ tr("actions", lang) }}</span>
+  </div>
+  {% for row in rows %}
+    {% set item = row.item %}
+    {% set state = row.state %}
+    <article class="content-row">
+      <div class="type-cell">
+        <span class="type-pill">{{ tr(item.content_type.value ~ "s", lang) }}</span>
+        <span class="status">{{ state.status.value }}</span>
+      </div>
+      <div class="content-main">
+        <a class="content-title" href="/content/{{ item.id }}">{{ item.chinese_title or item.title }}</a>
+        {% if item.chinese_title %}<p class="meta">{{ item.title }}</p>{% endif %}
+        <p class="meta">{{ item.platform or "manual" }} | {{ item.year or tr("unknown_year", lang) }} | {{ item.creator_text or tr("unknown_authors", lang) }}</p>
+        {% if item.description %}<p class="abstract">{{ item.description }}</p>{% endif %}
+        <div class="chips">
+          {% if state.favorite %}<span>{{ tr("favorite", lang) }}</span>{% endif %}
+          {% if state.in_focus %}<span>{{ tr("focused", lang) }}</span>{% endif %}
+          {% for creator in row.creators %}<span>{{ creator.name }}</span>{% endfor %}
+          {% for tag in row.tags %}<span>{{ tag.name }}</span>{% endfor %}
+        </div>
+      </div>
+      <div class="content-actions">
+        {% if item.url %}<a class="icon-link" href="{{ item.url }}" target="_blank" rel="noreferrer">{{ tr("open_link", lang) }}</a>{% endif %}
+        <form method="post" action="/content/{{ item.id }}/focus-toggle">
+          <button class="{% if state.in_focus %}secondary{% endif %}" type="submit">{% if state.in_focus %}{{ tr("focused", lang) }}{% else %}{{ tr("focus", lang) }}{% endif %}</button>
+        </form>
+        <a class="button-link" href="/content/{{ item.id }}/edit">{{ tr("edit", lang) }}</a>
+        <form method="post" action="/content/{{ item.id }}/delete"><button class="danger" type="submit">{{ tr("delete", lang) }}</button></form>
+      </div>
+    </article>
+  {% else %}
+    <div class="empty">{{ tr("no_items", lang) }}</div>
+  {% endfor %}
+</section>
+
+<nav class="pagination" aria-label="Pagination">
+  <span>{{ tr("page", lang) }} {{ pagination.page }} / {{ pagination.total_pages }}</span>
+  <div>
+    {% if pagination.has_prev %}
+      <a class="button-link" href="{{ request.url.include_query_params(page=pagination.prev_page) }}">{{ tr("previous", lang) }}</a>
+    {% else %}
+      <span class="button-link disabled">{{ tr("previous", lang) }}</span>
+    {% endif %}
+    {% if pagination.has_next %}
+      <a class="button-link" href="{{ request.url.include_query_params(page=pagination.next_page) }}">{{ tr("next", lang) }}</a>
+    {% else %}
+      <span class="button-link disabled">{{ tr("next", lang) }}</span>
+    {% endif %}
+  </div>
+</nav>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>{{ tr("scholars", lang) }}</h1>
+    <p>{{ tr("add_scholars", lang) }}</p>
+  </div>
+</section>
+
+{% if error %}<div class="notice">{{ error }}</div>{% endif %}
+
+<form class="panel-form" method="post" action="/researchers">
+  <label>{{ tr("scholar_url", lang) }}
+    <input name="scholar_profile_url" required placeholder="https://scholar.google.com/citations?user=...">
+  </label>
+  <label>{{ tr("aliases", lang) }}
+    <input name="aliases" placeholder="Comma separated">
+  </label>
+  <label>{{ tr("keywords", lang) }}
+    <input name="keywords" placeholder="LLM, systems, retrieval">
+  </label>
+  <label>{{ tr("notes", lang) }}
+    <textarea name="notes" rows="3"></textarea>
+  </label>
+  <button type="submit">{{ tr("add_and_import", lang) }}</button>
+</form>
+
+<section class="table-list">
+  {% for row in rows %}
+    {% set researcher = row.researcher %}
+    {% set source = row.source %}
+    <article>
+      <div>
+        <h2>{{ researcher.name }}</h2>
+        <p>{{ researcher.google_profile_url }}</p>
+        {% if researcher.keywords %}<p>{{ researcher.keywords }}</p>{% endif %}
+        <p>{{ row.paper_count }} {{ tr("papers_count", lang) }}</p>
+      </div>
+      <div class="row-actions">
+        <a class="button-link" href="/researchers/{{ researcher.id }}/edit">{{ tr("edit", lang) }}</a>
+        {% if source %}
+          <form method="post" action="/api/sources/{{ source.id }}/refresh">
+            <button type="submit">{{ tr("refresh", lang) }}</button>
+          </form>
+        {% endif %}
+        <form method="post" action="/researchers/{{ researcher.id }}/delete">
+          <button class="danger" type="submit">{{ tr("delete", lang) }}</button>
+        </form>
+      </div>
+    </article>
+  {% else %}
+    <div class="empty">{{ tr("no_scholars", lang) }}</div>
+  {% endfor %}
+</section>
+{% endblock %}

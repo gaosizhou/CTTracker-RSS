@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>来源管理</h1>
+    <p>Google Research 作者主页和 RSS/Atom 补充源。</p>
+  </div>
+</section>
+
+{% if error %}<div class="notice">{{ error }}</div>{% endif %}
+
+<form class="panel-form" method="post" action="/sources">
+  <label>来源 URL
+    <input name="url" required placeholder="https://...">
+  </label>
+  <label>类型
+    <select name="source_type">
+      <option value="rss_atom">rss_atom</option>
+      <option value="google_research_profile">google_research_profile</option>
+    </select>
+  </label>
+  <label>关联大佬
+    <select name="researcher_id">
+      <option value="">不关联</option>
+      {% for researcher in researchers %}
+        <option value="{{ researcher.id }}">{{ researcher.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">添加来源</button>
+</form>
+
+<section class="table-list">
+  {% for source in sources %}
+    <article>
+      <div>
+        <h2>{{ source.source_type.value }}</h2>
+        <p>{{ source.url }}</p>
+        <p>
+          {% if source.researcher_id and source.researcher_id in researcher_map %}
+            {{ researcher_map[source.researcher_id].name }}
+          {% else %}
+            未关联
+          {% endif %}
+          · 上次刷新：{{ source.last_refreshed_at or "从未" }}
+        </p>
+      </div>
+      <form method="post" action="/api/sources/{{ source.id }}/refresh">
+        <button type="submit">刷新</button>
+      </form>
+    </article>
+  {% else %}
+    <div class="empty">还没有来源。</div>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-head content-head">
+  <div>
+    <h1>{{ tr("tags", lang) }}</h1>
+    <p>{{ tags|length }} {{ tr("items", lang) }}</p>
+  </div>
+  <form class="inline-form top-inline-form" method="post" action="/tags">
+    <input name="name" required placeholder="{{ tr('new_tag', lang) }}">
+    <button type="submit">{{ tr("add_tag", lang) }}</button>
+  </form>
+</section>
+<section class="tag-cloud">
+  {% for tag in tags %}
+    <span>{{ tag.name }}</span>
+  {% else %}
+    <div class="empty">{{ tr("no_tags", lang) }}</div>
+  {% endfor %}
+</section>
+{% endblock %}

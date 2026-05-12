@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="paper-detail">
+  <a href="/">{{ tr("back_to_papers", lang) }}</a>
+  <h1>{{ paper.chinese_title or paper.title }}</h1>
+  {% if paper.chinese_title %}<p class="meta">{{ paper.title }}</p>{% endif %}
+  <p class="meta">{{ paper.year or tr("unknown_year", lang) }}</p>
+  <p>{{ paper.authors }}</p>
+  <div class="chips">
+    {% for researcher in researchers %}
+      <span>{{ researcher.name }}</span>
+    {% endfor %}
+  </div>
+  {% if paper.abstract %}<p class="detail-abstract">{{ paper.abstract }}</p>{% endif %}
+  <div class="links">
+    {% if paper.url %}<a href="{{ paper.url }}" target="_blank">{{ tr("scholar_detail", lang) }}</a>{% endif %}
+    {% if paper.pdf_url %}<a href="{{ paper.pdf_url }}" target="_blank">PDF</a>{% endif %}
+    <a href="/papers/{{ paper.id }}/edit">{{ tr("edit", lang) }}</a>
+  </div>
+</section>
+
+{% if not state or not state.in_watchlist %}
+  <form class="panel-form" method="post" action="/papers/{{ paper.id }}/watch-toggle">
+    <label>{{ tr("focus_tags", lang) }}
+      <details class="dropdown-filter">
+        <summary>{{ tr("choose_tags", lang) }}</summary>
+        <div class="dropdown-panel">
+          {% for tag in tags %}
+            <label class="check">
+              <input type="checkbox" name="tag_ids" value="{{ tag.id }}" {% if tag.id in selected_tag_ids %}checked{% endif %}>
+              {{ tag.name }}
+            </label>
+          {% else %}
+            <span class="muted">{{ tr("no_tags", lang) }}</span>
+          {% endfor %}
+        </div>
+      </details>
+    </label>
+    <button type="submit">{{ tr("focus", lang) }}</button>
+  </form>
+{% else %}
+  <form class="panel-form" method="post" action="/papers/{{ paper.id }}/watch-toggle">
+    <button class="secondary" type="submit">{{ tr("focused", lang) }}</button>
+  </form>
+{% endif %}
+
+<form class="panel-form" method="post" action="/api/papers/{{ paper.id }}/state">
+  <label>{{ tr("status", lang) }}
+    <select name="status">
+      {% for item in statuses %}
+        <option value="{{ item.value }}" {% if state and state.status.value == item.value %}selected{% endif %}>{{ item.value }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="check">
+    <input type="checkbox" name="favorite" value="true" {% if state and state.favorite %}checked{% endif %}>
+    {{ tr("favorite", lang) }}
+  </label>
+  <label class="check">
+    <input type="checkbox" name="in_watchlist" value="true" {% if state and state.in_watchlist %}checked{% endif %}>
+    {{ tr("focus", lang) }}
+  </label>
+  <label>{{ tr("focus_tags", lang) }}
+    <details class="dropdown-filter">
+      <summary>{{ tr("choose_tags", lang) }}</summary>
+      <div class="dropdown-panel">
+        {% for tag in tags %}
+          <label class="check">
+            <input type="checkbox" name="tag_ids" value="{{ tag.id }}" {% if tag.id in selected_tag_ids %}checked{% endif %}>
+            {{ tag.name }}
+          </label>
+        {% else %}
+          <span class="muted">{{ tr("no_tags", lang) }}</span>
+        {% endfor %}
+      </div>
+    </details>
+  </label>
+  <label>{{ tr("notes", lang) }}
+    <textarea name="notes" rows="6">{{ state.notes if state else '' }}</textarea>
+  </label>
+  <button type="submit">{{ tr("save_paper", lang) }}</button>
+</form>
+
+<form method="post" action="/papers/{{ paper.id }}/delete">
+  <button class="danger" type="submit">{{ tr("delete_paper", lang) }}</button>
+</form>
+{% endblock %}

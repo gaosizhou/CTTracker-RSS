@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="detail-shell">
+  <div class="detail-main">
+    <a class="back-link" href="/{{ item.content_type.value }}s">{{ tr("back", lang) }}</a>
+    <div class="detail-card">
+      <div class="detail-kicker">
+        <span class="type-pill">{{ tr(item.content_type.value ~ "s", lang) }}</span>
+        <span class="status">{{ state.status.value }}</span>
+        {% if state.in_focus %}<span class="status focus-status">{{ tr("focused", lang) }}</span>{% endif %}
+      </div>
+      <h1>{{ item.chinese_title or item.title }}</h1>
+      {% if item.chinese_title %}<p class="meta original-title">{{ item.title }}</p>{% endif %}
+      <p class="meta">{{ item.platform or "manual" }} | {{ item.year or tr("unknown_year", lang) }} | {{ item.creator_text or tr("unknown_authors", lang) }}</p>
+      <div class="chips detail-chips">
+        {% for creator in creators %}<span>{{ creator.name }}</span>{% endfor %}
+        {% for tag in tags if tag.id in selected_tag_ids %}<span>{{ tag.name }}</span>{% endfor %}
+      </div>
+      {% if item.description %}<p class="detail-abstract">{{ item.description }}</p>{% endif %}
+      <div class="links">
+        {% if item.url %}<a class="button-link primary-link" href="{{ item.url }}" target="_blank" rel="noreferrer">{{ tr("open_link", lang) }}</a>{% endif %}
+        {% if item.pdf_url %}<a class="button-link" href="{{ item.pdf_url }}" target="_blank" rel="noreferrer">PDF</a>{% endif %}
+        <a class="button-link" href="/content/{{ item.id }}/edit">{{ tr("edit", lang) }}</a>
+      </div>
+    </div>
+  </div>
+
+  <aside class="state-panel">
+    <h2>{{ tr("status", lang) }}</h2>
+    <form class="state-form" method="post" action="/content/{{ item.id }}/edit">
+      <input type="hidden" name="title" value="{{ item.title }}">
+      <input type="hidden" name="chinese_title" value="{{ item.chinese_title }}">
+      <input type="hidden" name="creator_text" value="{{ item.creator_text }}">
+      <input type="hidden" name="platform" value="{{ item.platform }}">
+      <input type="hidden" name="year" value="{{ item.year or '' }}">
+      <input type="hidden" name="url" value="{{ item.url or '' }}">
+      <input type="hidden" name="pdf_url" value="{{ item.pdf_url or '' }}">
+      <input type="hidden" name="description" value="{{ item.description }}">
+      <label>{{ tr("status", lang) }}<select name="status">{% for status in statuses %}<option value="{{ status.value }}" {% if state.status.value == status.value %}selected{% endif %}>{{ status.value }}</option>{% endfor %}</select></label>
+      <label class="check"><input type="checkbox" name="favorite" value="true" {% if state.favorite %}checked{% endif %}>{{ tr("favorite", lang) }}</label>
+      <label class="check"><input type="checkbox" name="in_focus" value="true" {% if state.in_focus %}checked{% endif %}>{{ tr("focus", lang) }}</label>
+      <label>{{ tr("tags", lang) }}<details class="dropdown-filter"><summary>{{ tr("choose_tags", lang) }}</summary><div class="dropdown-panel">{% for tag in tags %}<label class="check"><input type="checkbox" name="tag_ids" value="{{ tag.id }}" {% if tag.id in selected_tag_ids %}checked{% endif %}>{{ tag.name }}</label>{% else %}<span class="muted">{{ tr("no_tags", lang) }}</span>{% endfor %}</div></details></label>
+      <label>{{ tr("notes", lang) }}<textarea name="notes" rows="7">{{ state.notes }}</textarea></label>
+      <button type="submit">{{ tr("save", lang) }}</button>
+    </form>
+  </aside>
+</section>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>{{ tr("papers", lang) }}</h1>
+    <p>{{ rows|length }} {{ tr("tracked_papers", lang) }}</p>
+  </div>
+</section>
+
+{% if request.query_params.get("error") %}
+  <div class="notice">{{ request.query_params.get("error") }}</div>
+{% endif %}
+
+<form class="filters" method="get">
+  <select name="researcher_id">
+    <option value="">{{ tr("all_scholars", lang) }}</option>
+    {% for researcher in researchers %}
+      <option value="{{ researcher.id }}" {% if filters.researcher_id == researcher.id %}selected{% endif %}>{{ researcher.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="year">
+    <option value="">{{ tr("all_years", lang) }}</option>
+    {% for item in years %}
+      <option value="{{ item }}" {% if filters.year == item %}selected{% endif %}>{{ item }}</option>
+    {% endfor %}
+  </select>
+  <input name="keyword" value="{{ filters.keyword }}" placeholder="{{ tr('keyword_placeholder', lang) }}">
+  <details class="dropdown-filter">
+    <summary>{{ tr("tag_filter", lang) }}</summary>
+    <div class="dropdown-panel">
+      {% for tag in tags %}
+        <label class="check">
+          <input type="checkbox" name="tag_ids" value="{{ tag.id }}" {% if tag.id in filters.tag_ids %}checked{% endif %}>
+          {{ tag.name }}
+        </label>
+      {% else %}
+        <span class="muted">{{ tr("no_tags", lang) }}</span>
+      {% endfor %}
+    </div>
+  </details>
+  <select name="status">
+    <option value="">{{ tr("all_status", lang) }}</option>
+    {% for item in statuses %}
+      <option value="{{ item.value }}" {% if filters.status == item.value %}selected{% endif %}>{{ item.value }}</option>
+    {% endfor %}
+  </select>
+  <select name="match_mode">
+    <option value="all" {% if filters.match_mode != "any" %}selected{% endif %}>{{ tr("match_all", lang) }}</option>
+    <option value="any" {% if filters.match_mode == "any" %}selected{% endif %}>{{ tr("match_any", lang) }}</option>
+  </select>
+  <select name="sort">
+    <option value="year_desc" {% if filters.sort == "year_desc" %}selected{% endif %}>{{ tr("newest_year", lang) }}</option>
+    <option value="year" {% if filters.sort == "year" %}selected{% endif %}>{{ tr("oldest_year", lang) }}</option>
+    <option value="title" {% if filters.sort == "title" %}selected{% endif %}>{{ tr("title", lang) }}</option>
+  </select>
+  <button type="submit">{{ tr("filter", lang) }}</button>
+</form>
+
+<section class="paper-list">
+  {% for row in rows %}
+    {% set paper = row.paper %}
+    {% set state = row.state %}
+    <article class="paper-card">
+      <div class="paper-main">
+        <a class="paper-title" href="/papers/{{ paper.id }}">
+          {{ paper.chinese_title or paper.title }}
+        </a>
+        {% if paper.chinese_title %}
+          <p class="meta">{{ paper.title }}</p>
+        {% endif %}
+        <p class="meta">
+          {{ paper.year or tr("unknown_year", lang) }} | {{ paper.authors or tr("unknown_authors", lang) }}
+        </p>
+        {% if paper.abstract %}<p class="abstract">{{ paper.abstract }}</p>{% endif %}
+        <div class="chips">
+          {% for researcher in row.researchers %}
+            <span>{{ researcher.name }}</span>
+          {% endfor %}
+          {% if state.favorite %}<span>{{ tr("favorite", lang) }}</span>{% endif %}
+          {% if state.in_watchlist %}<span>{{ tr("focused", lang) }}</span>{% endif %}
+          {% for tag in row.tags %}<span>{{ tag.name }}</span>{% endfor %}
+        </div>
+      </div>
+      <div class="paper-actions">
+        <div class="status">{{ state.status.value }}</div>
+        <form method="post" action="/papers/{{ paper.id }}/watch-toggle">
+          <button class="{% if state.in_watchlist %}secondary{% endif %}" type="submit">
+            {% if state.in_watchlist %}{{ tr("focused", lang) }}{% else %}{{ tr("focus", lang) }}{% endif %}
+          </button>
+        </form>
+        <a class="button-link" href="/papers/{{ paper.id }}/edit">{{ tr("edit", lang) }}</a>
+        <form method="post" action="/papers/{{ paper.id }}/delete">
+          <button class="danger" type="submit">{{ tr("delete", lang) }}</button>
+        </form>
+      </div>
+    </article>
+  {% else %}
+    <div class="empty">{{ tr("no_papers", lang) }}</div>
+  {% endfor %}
+</section>
+{% endblock %}

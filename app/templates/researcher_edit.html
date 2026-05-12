@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>{{ tr("edit_scholar", lang) }}</h1>
+    <p>{{ tr("edit_scholar_help", lang) }}</p>
+  </div>
+</section>
+
+{% if request.query_params.get("error") %}
+  <div class="notice">{{ request.query_params.get("error") }}</div>
+{% endif %}
+
+<form class="panel-form" method="post" action="/researchers/{{ researcher.id }}/edit">
+  <label>{{ tr("name", lang) }}
+    <input name="name" required value="{{ researcher.name }}">
+  </label>
+  <label>{{ tr("scholar_url", lang) }}
+    <input name="scholar_profile_url" required value="{{ researcher.google_profile_url or '' }}">
+  </label>
+  <label>{{ tr("aliases", lang) }}
+    <input name="aliases" value="{{ researcher.aliases }}">
+  </label>
+  <label>{{ tr("keywords", lang) }}
+    <input name="keywords" value="{{ researcher.keywords }}">
+  </label>
+  <label>{{ tr("notes", lang) }}
+    <textarea name="notes" rows="4">{{ researcher.notes }}</textarea>
+  </label>
+  <button type="submit">{{ tr("save_scholar", lang) }}</button>
+</form>
+{% endblock %}
